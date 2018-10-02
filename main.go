@@ -55,15 +55,17 @@ func main() {
 	if len(args) > 0 {
 		opRaw := popArg()
 
-		switch opRaw {
-		case "get":
-			op = get
-		case "create":
-			op = create
-		case "start":
-			op = startTrack
-		case "stop":
-			op = stopTrack
+		var found bool
+		op, found = map[string]operation{
+			"get":    get,
+			"create": create,
+			"start":  startTrack,
+			"stop":   stopTrack,
+		}[opRaw]
+
+		if !found {
+			fmt.Printf("unknown operation '%s'\n", opRaw)
+			os.Exit(1)
 		}
 	}
 
@@ -73,7 +75,8 @@ func main() {
 	case get:
 		trie, err := client.Get()
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 		recording, path := trie.GetRecorded()
@@ -91,7 +94,8 @@ func main() {
 			path = append(path, popArg())
 		}
 		if err := client.Create(path); err != nil {
-			panic(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 	case startTrack:
@@ -100,15 +104,18 @@ func main() {
 			path = append(path, popArg())
 		}
 		if err := client.Start(path); err != nil {
-			panic(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 	case stopTrack:
 		if err := client.Stop(); err != nil {
-			panic(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 	default:
-		panic("unhandled operation")
+		fmt.Println("unhandled operation")
+		os.Exit(1)
 	}
 }
