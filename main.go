@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -14,6 +15,18 @@ const (
 func format(date *time.Time) string {
 	layout := "2 Jan 2006 15:04:05"
 	return date.Format(layout)
+}
+
+func foreachChildren(t *Trie, fn func(string, *Trie)) {
+	var keys []string
+	for key := range t.Children {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		fn(key, t.Children[key])
+	}
 }
 
 func printRecursive(t *Trie, indent, key string) {
@@ -32,9 +45,9 @@ func printRecursive(t *Trie, indent, key string) {
 		fmt.Println()
 	}
 
-	for key, child := range t.Children {
+	foreachChildren(t, func(key string, child *Trie) {
 		printRecursive(child, indent+"  ", key)
-	}
+	})
 }
 
 func main() {
@@ -84,9 +97,9 @@ func main() {
 			fmt.Printf("recording: %s\n", strings.Join(path, "/"))
 		}
 
-		for key, child := range trie.Children {
+		foreachChildren(trie, func(key string, child *Trie) {
 			printRecursive(child, "", key)
-		}
+		})
 
 	case create:
 		var path []string
